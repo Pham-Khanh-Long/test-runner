@@ -3,6 +3,9 @@ name: PR Agent
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main  # Hoặc tên nhánh chính của bạn
 
 jobs:
   run-pr-agent:
@@ -16,14 +19,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set PR URL for push
+        if: github.event_name == 'push'
+        run: echo "PR_URL=https://github.com/${{ github.repository }}/commit/${{ github.sha }}" >> $GITHUB_ENV
+
+      - name: Set PR URL for pull_request
+        if: github.event_name == 'pull_request'
+        run: echo "PR_URL=${{ github.event.pull_request.html_url }}" >> $GITHUB_ENV
+
       - name: Run PR Agent
         env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
           config__git_provider: github
           github__token: ${{ secrets.GITHUB_TOKEN }}
           openai__key: ${{ secrets.OPENAI_KEY }}
           openai__api_base: ${{ secrets.OPENAI_API_BASE }}
+          PR_URL: ${{ env.PR_URL }}
         run: |
+          echo "Reviewing URL: $PR_URL"
           python -m pr_agent.cli --pr_url="$PR_URL" describe
           python -m pr_agent.cli --pr_url="$PR_URL" review -i
           python -m pr_agent.cli --pr_url="$PR_URL" improve
