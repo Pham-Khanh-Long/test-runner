@@ -30,7 +30,7 @@ jobs:
       - name: Run PR Agent
         env:
           config__git_provider: github
-          github__token: ${{ secrets.MY_PAT }}
+          github__user_token: ${{ secrets.MY_PAT }}        
           openai__key: ${{ secrets.OPENAI_KEY }}
           openai__api_base: ${{ secrets.OPENAI_API_BASE }}
           PR_URL: ${{ env.PR_URL }}
